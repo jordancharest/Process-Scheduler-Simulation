@@ -20,5 +20,5 @@ process.h
 process.cpp
 - implementation file for all shared functions
 
-<algorithm>.cpp
+"algorithm".cpp
 - control functions for all three simulation algorithms
