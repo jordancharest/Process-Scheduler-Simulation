@@ -10,7 +10,6 @@
 /* Control function for first come first serve simulator                                        */
 stat_t First_Come_First_Serve(std::vector<Process> &processes) {
 
-
     stat_t stats;
     stats.num_preemptions = 0;
     stats.algorithm = "FCFS";
@@ -62,26 +61,8 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
 
         // check if the current running process is done using the CPU
         if (running.getStatus() == Status::RUNNING  &&  running.endBurstTime() == time) {
-            // stats collection
             total_burst_time += (time - running.getStartTime());
-            stats.num_context_switches++;
-
-            running.decrementNumBursts();
-            CPU_available = running.endBurstTime() + T_CS;
-
-            if (running.getNumBursts() == 0) {
-                // stats collection
-                stats.avg_turnaround_time += (time - running.getArrivalTime());
-                std::cout << time << " - " << running.getArrivalTime() << " - (" << running.getTotalBursts() << " * " << running.getBurstTime() << ") - (" << running.getTotalBursts() << " * " << T_CS << ")\n";
-                stats.avg_wait_time += ((time - running.getArrivalTime())                       // total up time
-                                        - (running.getTotalBursts() * running.getBurstTime())   // total execution time
-                                        - ((running.getTotalBursts()) * T_CS));                 // total time caught in a context switch
-
-                process_termination(ready_queue, running, time);
-
-            } else {
-                process_block(ready_queue, IO_blocked, running, time);
-            }
+            process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
         }
 
         // check if any process is done IO
