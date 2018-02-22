@@ -81,6 +81,7 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
         // check if a previously preempted process is done using the CPU
         } else if ((running.getStatus() == Status::RUNNING  &&  (running.endBurstTime() == time))
                     || (running.wasPreempted()  &&  running.getStatus() == Status::RUNNING  &&  running.endRemainingTime() == time)){
+
             total_burst_time += (time - running.getStartTime());
             process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
         }
@@ -110,10 +111,8 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
 
                 preemption = true;
                 preempting_process = IO_blocked.front();
-                std::cout << "time " << time << "ms: Process " << preempting_process.getPID()
-                          << " completed I/O and will preempt " << running.getPID() << " " << queue_contents(ready_queue) << "\n";
-                ready_queue.push_front(preempting_process);
-                IO_blocked.pop_front();
+                preempt_after_IO(ready_queue, IO_blocked, preempting_process, running, time);
+
             } else {
                 process_finished_IO(ready_queue, IO_blocked, time);
                 ready_queue.sort(SRT_sort);

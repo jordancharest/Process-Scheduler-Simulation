@@ -122,6 +122,17 @@ void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO
     IO_blocked.pop_front();
 }
 
+// PREEMPT AFTER IO ==============================================================================
+/* Output for when a process finishes IO and preempts the running process                       */
+void preempt_after_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked,
+                      Process &preempting, Process &running, int time) {
+
+    std::cout << "time " << time << "ms: Process " << preempting.getPID()
+              << " completed I/O and will preempt " << running.getPID() << " " << queue_contents(ready_queue) << "\n";
+    ready_queue.push_front(preempting);
+    IO_blocked.pop_front();
+}
+
 // PROCESS TERMINATION ===========================================================================
 /* Handles process finishing its last CPU burst                                                 */
 void process_termination(std::list<Process> &ready_queue, Process &proc, int time) {

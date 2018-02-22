@@ -100,6 +100,7 @@ void process_start(std::list<Process> &ready_queue, Process &proc, int time);
 void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &proc, int* CPU_available, stat_t* stats, int time);
 void process_block(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &proc, int time);
 void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, int time);
+void preempt_after_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &preempting, Process &running, int time);
 void process_termination(std::list<Process> &ready_queue, Process &proc, int time);
 
 
