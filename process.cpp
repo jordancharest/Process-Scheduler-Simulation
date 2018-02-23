@@ -3,7 +3,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
-#include "process.h"
+#include "process.hpp"
 
 // IO SORT COMPARATOR ============================================================================
 bool IO_sort(Process &a, Process &b) {

@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstdio>
-#include "process.h"
+#include "process.hpp"
 
 int total_processes;
 
