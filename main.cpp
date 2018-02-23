@@ -86,7 +86,7 @@ void print_stats (stat_t &stats, std::ofstream &OutputStream) {
 int main(int argc, char* argv[]){
 
     if (argc != 3) {
-        std::cerr << "USAGE: " << argv[0] << "<input-file> <output-file>\n";
+        std::cerr << "USAGE: " << argv[0] << " <input-file> <output-file>\n";
         return EXIT_FAILURE;
     }
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]){
 
     std::ofstream OutputStream(argv[2]);
     if (!OutputStream.good()){
-        std::cerr << "Can't open " << argv[2] << " to read.\n";
+        std::cerr << "Can't open " << argv[2] << " to write.\n";
         return EXIT_FAILURE;
     }
 
