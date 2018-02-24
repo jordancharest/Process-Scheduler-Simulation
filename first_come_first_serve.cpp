@@ -39,13 +39,15 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
     int total_burst_time = 0;
     std::list<Process> IO_blocked;
 
-    while (next < total_processes  ||  ready_queue.size() > 0  ||  IO_blocked.size() > 0  ||  running.getStatus() == Status::RUNNING) {
+    while (ready_queue.size() > 0  || IO_blocked.size() > 0  ||  running.getStatus() == Status::RUNNING) {
 
         // check if any processes are arriving
-        if (processes[next].getArrivalTime() == time) {
-            process_arrival(ready_queue, processes[next], time);
-            next++;
-        }
+		if (next < total_processes) {
+			if (processes[next].getArrivalTime() == time) {
+				process_arrival(ready_queue, processes[next], time);
+				next++;
+			}
+		}
 
         // check if a new process should be started
         if (running.getStatus() != Status::RUNNING  &&  ready_queue.size() > 0) {
@@ -66,9 +68,11 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
         }
 
         // check if any process is done IO
-        if (IO_blocked.front().endIOTime() == time) {
-            process_finished_IO(ready_queue, IO_blocked, time);
-        }
+		if (IO_blocked.size() != 0) {
+			if (IO_blocked.front().endIOTime() == time) {
+				process_finished_IO(ready_queue, IO_blocked, time);
+			}
+		}
 
         time++;
     }

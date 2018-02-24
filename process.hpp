@@ -6,6 +6,7 @@
 
 // GLOBAL VARIABLES ==============================================================================
 #define T_CS 8  // time needed for a context switch
+#define T_SLICE 80  // time slice for round robin
 extern int total_processes;
 
 enum class Status {
@@ -98,6 +99,7 @@ void process_arrival(std::list<Process> &ready_queue, Process &proc, int time);
 void preempt_on_arrival(std::list<Process> &ready_queue, Process &arriving, Process &running, int time);
 void process_start(std::list<Process> &ready_queue, Process &proc, int time);
 void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &proc, int* CPU_available, stat_t* stats, int time);
+void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time);
 void process_block(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &proc, int time);
 void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, int time);
 void preempt_after_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &preempting, Process &running, int time);

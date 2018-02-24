@@ -112,12 +112,12 @@ int main(int argc, char* argv[]){
 #endif
 
     // Run three different scheduling simulations
-    stat_t FCFS_stats = First_Come_First_Serve(processes);
-    stat_t SRT_stats = Shortest_Remaining_Time(processes);
+    //stat_t FCFS_stats = First_Come_First_Serve(processes);
+    //stat_t SRT_stats = Shortest_Remaining_Time(processes);
     stat_t RR_stats = Round_Robin(processes);
 
-    print_stats(FCFS_stats, OutputStream);
-    print_stats(SRT_stats, OutputStream);
+    //print_stats(FCFS_stats, OutputStream);
+    //print_stats(SRT_stats, OutputStream);
     print_stats(RR_stats, OutputStream);
 
     return EXIT_SUCCESS;

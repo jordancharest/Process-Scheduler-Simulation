@@ -84,6 +84,28 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
     }
 }
 
+// PROCESS PREEMPTED ========================================================================
+/* Handles when a process is preempted, sending it to ready queue                               */
+void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time) {
+
+	stats->num_context_switches++;
+	stats->num_preemptions++;
+
+	proc.preempt(time);
+	
+	// time when the CPU will next be available (after context switch)
+	*CPU_available = time + T_CS;
+
+	proc.setAsREADY(*CPU_available);
+
+	ready_queue.push_back(proc);
+
+	
+	std::cout << "time " << time << "ms: Process " << proc.getPID()
+		<< " switching out of CPU " << queue_contents(ready_queue)
+		<< "\n";
+}
+
 // PROCESS BLOCK =================================================================================
 /* Handles process arrival in the IO blocked queue                                              */
 void process_block(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &proc, int time) {
