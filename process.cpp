@@ -86,7 +86,7 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
 
 // PROCESS PREEMPTED ========================================================================
 /* Handles when a process is preempted, sending it to ready queue                               */
-void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time) {
+void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time, char* rr_add) {
 
 	stats->num_context_switches++;
 	stats->num_preemptions++;
@@ -98,7 +98,10 @@ void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_
 
 	proc.setAsREADY(*CPU_available);
 
-	ready_queue.push_back(proc);
+	if (strcmp(rr_add, "BEGINNING") == 0)
+		ready_queue.push_front(proc);
+	else
+		ready_queue.push_back(proc);
 
 	
 	std::cout << "time " << time << "ms: Process " << proc.getPID()

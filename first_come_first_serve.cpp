@@ -39,7 +39,7 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
     int total_burst_time = 0;
     std::list<Process> IO_blocked;
 
-    while (ready_queue.size() > 0  || IO_blocked.size() > 0  ||  running.getStatus() == Status::RUNNING) {
+    while (next < total_processes || ready_queue.size() > 0  || IO_blocked.size() > 0  ||  running.getStatus() == Status::RUNNING) {
 
         // check if any processes are arriving
 		if (next < total_processes) {

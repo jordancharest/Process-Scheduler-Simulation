@@ -6,7 +6,7 @@
 
 // ROUND ROBIN ===================================================================================
 /* Control function for round robin simulator                                                   */
-stat_t Round_Robin(std::vector<Process> &processes) {
+stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 
     stat_t stats;
     stats.algorithm = "RR";
@@ -35,7 +35,7 @@ stat_t Round_Robin(std::vector<Process> &processes) {
 	int total_burst_time = 0;
 	std::list<Process> IO_blocked;
 
-	while (ready_queue.size() > 0 || IO_blocked.size() > 0 || running.getStatus() == Status::RUNNING) {
+	while (next < total_processes || ready_queue.size() > 0 || IO_blocked.size() > 0 || running.getStatus() == Status::RUNNING) {
 
 		// check if any processes are arriving
 		if (next < total_processes) {
@@ -66,9 +66,9 @@ stat_t Round_Robin(std::vector<Process> &processes) {
 					total_burst_time += (time - running.getStartTime());
 					process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
 				}
-				else if ((time - running.getStartTime()) == T_SLICE) {
+				else if ((time - running.getStartTime()) >= T_SLICE && ready_queue.size() !=0 ) {
 					total_burst_time += (time - running.getStartTime());
-					process_preempted(ready_queue, running, &CPU_available, &stats, time);
+					process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
 				}
 			}
 			else {
@@ -76,9 +76,9 @@ stat_t Round_Robin(std::vector<Process> &processes) {
 					total_burst_time += (time - running.getStartTime());
 					process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
 				}
-				else if ((time - running.getStartTime()) == T_SLICE) {
+				else if ((time - running.getStartTime()) >= T_SLICE && ready_queue.size() != 0) {
 					total_burst_time += (time - running.getStartTime());
-					process_preempted(ready_queue, running, &CPU_available, &stats, time);
+					process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
 				}
 			}
 			
