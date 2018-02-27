@@ -20,7 +20,7 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 	// check for all processes that will arrive before the first process can start running
 	for (int i = 0; i < (T_CS / 2); i++) {
 		while (processes[next].getArrivalTime() == time + i) {
-			process_arrival(ready_queue, processes[next], time + i);
+			process_arrival_RR(ready_queue, processes[next], time + i, rr_add);
 			next++;
 		}
 	}
@@ -40,7 +40,7 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 		// check if any processes are arriving
 		if (next < total_processes) {
 			if (processes[next].getArrivalTime() == time) {
-				process_arrival(ready_queue, processes[next], time);
+				process_arrival_RR(ready_queue, processes[next], time, rr_add);
 				next++;
 			}
 		}
@@ -88,7 +88,7 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 		// check if any process is done IO
 		if (IO_blocked.size() != 0) {
 			if (IO_blocked.front().endIOTime() == time) {
-				process_finished_IO(ready_queue, IO_blocked, time);
+				process_finished_IO_RR(ready_queue, IO_blocked, time, rr_add);
 			}
 		}
 

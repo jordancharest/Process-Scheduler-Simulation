@@ -45,6 +45,19 @@ void preempt_on_arrival(std::list<Process> &ready_queue, Process &arriving, Proc
     ready_queue.push_front(arriving);
 }
 
+// PROCESS ARRIVAL ===============================================================================
+/* Handles process arrival in the ready queue for Round Robin                                   */
+void process_arrival_RR(std::list<Process> &ready_queue, Process &proc,  int time, char* rr_add) {
+	proc.setAsREADY(time);
+	if (strcmp(rr_add, "BEGINNING") == 0)
+		ready_queue.push_front(proc);
+	else
+		ready_queue.push_back(proc);
+
+	std::cout << "time " << time << "ms: Process " << proc.getPID()
+		<< " arrived and added to ready queue " << queue_contents(ready_queue) << "\n";
+}
+
 // PROCESS START =================================================================================
 /* Handles pulling a process from the ready queue and beginning execution                       */
 void process_start(std::list<Process> &ready_queue, Process &proc, int time) {
@@ -85,7 +98,7 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
 }
 
 // PROCESS PREEMPTED ========================================================================
-/* Handles when a process is preempted, sending it to ready queue                               */
+/* Handles when a process is preempted, sending it to ready queue                          */
 void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time, char* rr_add) {
 
 	stats->num_context_switches++;
@@ -134,6 +147,7 @@ void process_block(std::list<Process> &ready_queue, std::list<Process> &IO_block
               << "\n";
 }
 
+
 // PROCESS FINISHED IO ===========================================================================
 /* Handles process finishing IO block                                                           */
 void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, int time) {
@@ -145,6 +159,22 @@ void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO
           << "\n";
 
     IO_blocked.pop_front();
+}
+
+// PROCESS FINISHED IO ===========================================================================
+/* Handles process finishing IO block for Round Robin                                           */
+void process_finished_IO_RR(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, int time, char* rr_add) {
+	IO_blocked.front().setAsREADY(time);
+	if (strcmp(rr_add, "BEGINNING") == 0)
+		ready_queue.push_front(IO_blocked.front());
+	else
+		ready_queue.push_back(IO_blocked.front());
+
+	std::cout << "time " << time << "ms: Process " << IO_blocked.front().getPID()
+		<< " completed I/O; added to ready queue " << queue_contents(ready_queue)
+		<< "\n";
+
+	IO_blocked.pop_front();
 }
 
 // PREEMPT AFTER IO ==============================================================================
