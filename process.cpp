@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <list>
 #include <vector>
 #include <sstream>
@@ -101,11 +102,26 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
 /* Handles when a process is preempted, sending it to ready queue                          */
 void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time, char* rr_add) {
 
-	stats->num_context_switches++;
+
+
+
+	std::cout << "time " << time << "ms: Time slice expired; process " << proc.getPID()
+		<< " preempted with ";
+
+    if (proc.wasPreempted())
+        std::cout << proc.endRemainingTime() - time;
+    else
+        std::cout << proc.endBurstTime() - time;
+
+    std::cout << "ms to go " << queue_contents(ready_queue)
+		<< "\n";
+
+
+    stats->num_context_switches++;
 	stats->num_preemptions++;
 
 	proc.preempt(time);
-	
+
 	// time when the CPU will next be available (after context switch)
 	*CPU_available = time + T_CS;
 
@@ -115,11 +131,6 @@ void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_
 		ready_queue.push_front(proc);
 	else
 		ready_queue.push_back(proc);
-
-	
-	std::cout << "time " << time << "ms: Process " << proc.getPID()
-		<< " switching out of CPU " << queue_contents(ready_queue)
-		<< "\n";
 }
 
 // PROCESS BLOCK =================================================================================
