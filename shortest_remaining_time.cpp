@@ -5,7 +5,7 @@
 
 // SHORTEST REMAINING TIME SORT ==================================================================
 bool SRT_sort(Process &a, Process &b) {
-    return (a.getBurstTime() < b.getBurstTime());
+    return (a.getBurstLength() < b.getBurstLength());
 }
 
 
@@ -50,8 +50,11 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
         if (preemption) {
             if (context_counter == 0) {
                 running.preempt(time-1);    // preemption actually occurred last ms
+                running.setAsREADY(time-1);
                 ready_queue.push_back(running);
                 ready_queue.sort(SRT_sort);
+                stats.num_context_switches++;
+                stats.num_preemptions++;
 
                 running = preempting_process;
             }
@@ -70,10 +73,11 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
 
             if (time >= CPU_available  &&  context_counter >= T_CS/2) {
                 running = ready_queue.front();
-                process_start(ready_queue, running, time);
-
+                stats.avg_wait_time += (time - running.getReadyTime() - T_CS/2);
                 num_bursts++;
                 context_counter = 0;
+
+                process_start(ready_queue, running, time);
             }
 
         // check if the current running process is done using the CPU (don't check for this if a preemption is occurring)
@@ -83,13 +87,31 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
                     || (running.wasPreempted()  &&  running.getStatus() == Status::RUNNING  &&  running.endRemainingTime() == time)){
 
             total_burst_time += (time - running.getStartTime());
+            calculate_turnaround(&stats, running, time);
             process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
+        }
+
+        // check if any process is done IO
+        if (IO_blocked.front().endIOTime() == time) {
+
+            if (  ((!running.wasPreempted()  &&  (IO_blocked.front().getBurstLength() < (running.endBurstTime() - time)))          // running was not preempted (check full burst time)
+                ||  (running.wasPreempted()  &&  (IO_blocked.front().getBurstLength() < (running.endRemainingTime() - time))))    // running was preempted (check remaining time)
+                &&  (running.getStatus() == Status::RUNNING))  {
+
+                preemption = true;
+                preempting_process = IO_blocked.front();
+                preempt_after_IO(ready_queue, IO_blocked, preempting_process, running, time);
+
+            } else {
+                process_finished_IO(ready_queue, IO_blocked, time, &stats);
+                ready_queue.sort(SRT_sort);
+            }
         }
 
         // check if any processes are arriving
         if (next < total_processes  &&  processes[next].getArrivalTime() == time) {
-            if ((processes[next].getBurstTime() < (running.endBurstTime() - time))
-                || (processes[next].getBurstTime() < (running.endRemainingTime() - time)) ) {
+            if ((processes[next].getBurstLength() < (running.endBurstTime() - time))
+                || (processes[next].getBurstLength() < (running.endRemainingTime() - time)) ) {
 
                 preemption = true;
                 preempting_process = processes[next];
@@ -103,24 +125,19 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
             next++;
         }
 
-        // check if any process is done IO
-        if (IO_blocked.front().endIOTime() == time) {
-
-            if ((IO_blocked.front().getBurstTime() < (running.endBurstTime() - time))
-                || (processes[next].getBurstTime() < (running.endRemainingTime() - time)) )  {
-
-                preemption = true;
-                preempting_process = IO_blocked.front();
-                preempt_after_IO(ready_queue, IO_blocked, preempting_process, running, time);
-
-            } else {
-                process_finished_IO(ready_queue, IO_blocked, time, &stats);
-                ready_queue.sort(SRT_sort);
-            }
-        }
-
         time++;
     }
+
+    // Calculate stats
+    int total_bursts = 0;
+    for (auto &proc : processes) {
+        stats.avg_burst_time += (proc.getTotalBursts() * proc.getBurstLength());
+        total_bursts += proc.getTotalBursts();
+    }
+    stats.avg_burst_time /= total_bursts;
+    stats.avg_turnaround_time /= total_bursts;
+    stats.avg_turnaround_time += T_CS/2;
+    stats.avg_wait_time /= total_bursts;
 
     time += (T_CS/2 - 1);   // allow time for context switch
     std::cout << "time " << time << "ms: Simulator ended for SRT\n" << std::endl;

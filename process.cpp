@@ -13,7 +13,7 @@ bool IO_sort(Process &a, Process &b) {
 
 // READY QUEUE SORT ==============================================================================
 bool RQ_sort(Process &a, Process &b) {
-    return (a.getBurstTime() < b.getBurstTime());
+    return (a.getBurstLength() < b.getBurstLength());
 }
 
 // QUEUE CONTENTS ================================================================================
@@ -34,22 +34,21 @@ std::string queue_contents(std::list<Process> &process_queue) {
     return ss.str();
 }
 
-// CALCULATE STATS ===============================================================================
+// CALCULATE TURNAROUND ==========================================================================
 /* Calculate stats when a process is leaves CPU (either preemption or finishing)                */
-void calculate_stats(stat_t *stats, Process proc, int time) {
+void calculate_turnaround(stat_t *stats, Process proc, int time) {
     stats->num_context_switches++;
-
-    if (stats->algorithm == "FCFS") {
+    if (stats->algorithm == "FCFS")
         stats->avg_turnaround_time += (time - proc.getReadyTime());
-    }
-
-
+    else
+        stats->avg_turnaround_time += (time - proc.getWholeBurstReadyTime());
 }
 
 // PROCESS ARRIVAL ===============================================================================
 /* Handles process arrival in the ready queue                                                   */
 void process_arrival(std::list<Process> &ready_queue, Process &proc, int time) {
     proc.setAsREADY(time);
+    proc.setWholeBurstReadyTime(time);
     ready_queue.push_back(proc);
     std::cout << "time " << time << "ms: Process " << proc.getPID()
               << " arrived and added to ready queue " << queue_contents(ready_queue) << "\n";
@@ -162,11 +161,11 @@ void process_block(std::list<Process> &ready_queue, std::list<Process> &IO_block
               << "\n";
 }
 
-
 // PROCESS FINISHED IO ===========================================================================
 /* Handles process finishing IO block                                                           */
 void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, int time, stat_t* stats) {
     IO_blocked.front().setAsREADY(time);
+    IO_blocked.front().setWholeBurstReadyTime(time);
     ready_queue.push_back(IO_blocked.front());
 
     if (stats->algorithm == "SRT")
@@ -204,6 +203,7 @@ void preempt_after_IO(std::list<Process> &ready_queue, std::list<Process> &IO_bl
               << " completed I/O and will preempt " << running.getPID() << " " << queue_contents(ready_queue) << "\n";
 
     running.setAsREADY(time);
+    preempting.setWholeBurstReadyTime(time);
     ready_queue.push_front(preempting);
     IO_blocked.pop_front();
 }

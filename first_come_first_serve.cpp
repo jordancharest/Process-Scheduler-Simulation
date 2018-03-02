@@ -35,7 +35,6 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
 
     int context_counter = 0;
     int CPU_available = 0;
-    int num_bursts = 1;
     int total_burst_time = 0;
     std::list<Process> IO_blocked;
 
@@ -48,22 +47,16 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
             if (time >= CPU_available  && context_counter >= T_CS/2) {
                 running = ready_queue.front();
                 stats.avg_wait_time += (time - running.getReadyTime() - T_CS/2);
-                /*std::cout << "Process " << running.getPID() << " wait time: " << (time - running.getReadyTime() - T_CS/2) << "\n"
-                          << " total: " << stats.avg_wait_time << "\n";
-                */
-
+                context_counter = 0;
 
                 process_start(ready_queue, running, time);
-
-                num_bursts++;
-                context_counter = 0;
             }
         }
 
         // check if the current running process is done using the CPU
         if (running.getStatus() == Status::RUNNING  &&  running.endBurstTime() == time) {
             total_burst_time += (time - running.getStartTime());
-            calculate_stats(&stats, running, time);
+            calculate_turnaround(&stats, running, time);
             process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
         }
 
@@ -84,10 +77,15 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
     }
 
     // Calculate statistics
-    stats.avg_burst_time = (float) total_burst_time/num_bursts;
-    stats.avg_turnaround_time /= num_bursts;
+    int total_bursts = 0;
+    for (auto &proc : processes) {
+        stats.avg_burst_time += (proc.getTotalBursts() * proc.getBurstLength());
+        total_bursts += proc.getTotalBursts();
+    }
+    stats.avg_burst_time /= total_bursts;
+    stats.avg_turnaround_time /= total_bursts;
     stats.avg_turnaround_time += T_CS/2;
-    stats.avg_wait_time /= num_bursts;
+    stats.avg_wait_time /= total_bursts;
 
     time += (T_CS/2 - 1);   // allow time for context switch
     std::cout << "time " << time << "ms: Simulator ended for FCFS\n" << std::endl;
