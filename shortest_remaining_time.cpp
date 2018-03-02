@@ -24,7 +24,7 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
 
     // check for all processes that will arrive before the first process can start running
     for (int i = 0; i < (T_CS/2); i++) {
-        while (processes[next].getArrivalTime() == time + i ) {
+        while (processes[next].getArrivalTime() == time + i   &&  next < total_processes) {
             process_arrival(ready_queue, processes[next], time+i);
             next++;
         }
@@ -87,7 +87,7 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
         }
 
         // check if any processes are arriving
-        if (processes[next].getArrivalTime() == time) {
+        if (next < total_processes  &&  processes[next].getArrivalTime() == time) {
             if ((processes[next].getBurstTime() < (running.endBurstTime() - time))
                 || (processes[next].getBurstTime() < (running.endRemainingTime() - time)) ) {
 
@@ -114,7 +114,7 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
                 preempt_after_IO(ready_queue, IO_blocked, preempting_process, running, time);
 
             } else {
-                process_finished_IO(ready_queue, IO_blocked, time);
+                process_finished_IO(ready_queue, IO_blocked, time, &stats);
                 ready_queue.sort(SRT_sort);
             }
         }

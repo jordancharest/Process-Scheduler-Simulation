@@ -19,7 +19,7 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 
 	// check for all processes that will arrive before the first process can start running
 	for (int i = 0; i < (T_CS / 2); i++) {
-		while (processes[next].getArrivalTime() == time + i) {
+		while (processes[next].getArrivalTime() == time + i  &&  next < total_processes) {
 			process_arrival_RR(ready_queue, processes[next], time + i, rr_add);
 			next++;
 		}
@@ -38,12 +38,10 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 	while (next < total_processes || ready_queue.size() > 0 || IO_blocked.size() > 0 || running.getStatus() == Status::RUNNING) {
 
 		// check if any processes are arriving
-		if (next < total_processes) {
-			if (processes[next].getArrivalTime() == time) {
-				process_arrival_RR(ready_queue, processes[next], time, rr_add);
-				next++;
-			}
-		}
+        if (next < total_processes  &&  processes[next].getArrivalTime() == time) {
+            process_arrival_RR(ready_queue, processes[next], time, rr_add);
+            next++;
+        }
 
 		// check if a new process should be started
 		if (running.getStatus() != Status::RUNNING  &&  ready_queue.size() > 0) {
@@ -60,7 +58,6 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 		// check if the current running process is done using the CPU, or if time slice is used up
 		if (running.getStatus() == Status::RUNNING) {
 
-			
 			if (running.wasPreempted()) {
 				if (running.endRemainingTime() == time) {
 					total_burst_time += (time - running.getStartTime());
@@ -81,7 +78,7 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 					process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
 				}
 			}
-			
+
 		}
 
 
