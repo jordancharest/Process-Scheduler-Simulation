@@ -24,7 +24,7 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
 
     // check for all processes that will arrive before the first process can start running
     for (int i = 0; i < (T_CS/2); i++) {
-        while (processes[next].getArrivalTime() == time + i   &&  next < total_processes) {
+        while (next < total_processes && processes[next].getArrivalTime() == time + i ) {
             process_arrival(ready_queue, processes[next], time+i);
             next++;
         }
@@ -92,21 +92,24 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
         }
 
         // check if any process is done IO
-        if (IO_blocked.front().endIOTime() == time) {
+		if (IO_blocked.size() != 0) {
+			if (IO_blocked.front().endIOTime() == time) {
 
-            if (  ((!running.wasPreempted()  &&  (IO_blocked.front().getBurstLength() < (running.endBurstTime() - time)))          // running was not preempted (check full burst time)
-                ||  (running.wasPreempted()  &&  (IO_blocked.front().getBurstLength() < (running.endRemainingTime() - time))))    // running was preempted (check remaining time)
-                &&  (running.getStatus() == Status::RUNNING))  {
+				if (((!running.wasPreempted() && (IO_blocked.front().getBurstLength() < (running.endBurstTime() - time)))          // running was not preempted (check full burst time)
+					|| (running.wasPreempted() && (IO_blocked.front().getBurstLength() < (running.endRemainingTime() - time))))    // running was preempted (check remaining time)
+					&& (running.getStatus() == Status::RUNNING)) {
 
-                preemption = true;
-                preempting_process = IO_blocked.front();
-                preempt_after_IO(ready_queue, IO_blocked, preempting_process, running, time);
+					preemption = true;
+					preempting_process = IO_blocked.front();
+					preempt_after_IO(ready_queue, IO_blocked, preempting_process, running, time);
 
-            } else {
-                process_finished_IO(ready_queue, IO_blocked, time, &stats);
-                ready_queue.sort(SRT_sort);
-            }
-        }
+				}
+				else {
+					process_finished_IO(ready_queue, IO_blocked, time, &stats);
+					ready_queue.sort(SRT_sort);
+				}
+			}
+		}
 
         // check if any processes are arriving
         if (next < total_processes  &&  processes[next].getArrivalTime() == time) {

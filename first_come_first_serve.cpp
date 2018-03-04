@@ -23,7 +23,7 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
 
     // check for all processes that will arrive before the first process can start running
     for (int i = 0; i < (T_CS/2); i++) {
-        while (processes[next].getArrivalTime() == time + i  &&  next < total_processes) {
+        while (next < total_processes && processes[next].getArrivalTime() == time + i) {
             process_arrival(ready_queue, processes[next], time+i);
             next++;
         }
