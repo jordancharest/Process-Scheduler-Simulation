@@ -66,6 +66,7 @@ void preempt_on_arrival(std::list<Process> &ready_queue, Process &arriving, Proc
 /* Handles process arrival in the ready queue for Round Robin                                   */
 void process_arrival_RR(std::list<Process> &ready_queue, Process &proc,  int time, char* rr_add) {
 	proc.setAsREADY(time);
+	proc.setWholeBurstReadyTime(time);
 	if (strcmp(rr_add, "BEGINNING") == 0)
 		ready_queue.push_front(proc);
 	else
@@ -110,30 +111,35 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
 // PROCESS PREEMPTED ========================================================================
 /* Handles when a process is preempted, sending it to ready queue                          */
 void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time, char* rr_add) {
+	if (ready_queue.size() == 0) {
+		std::cout << "time " << time << "ms: Time slice expired; no preemption because ready queue is empty [Q <empty>]\n";
+		//*CPU_available = time + T_SLICE;
+		proc.setRemaining_time(time);
+		proc.setAsRUNNING(time);		
+	}
+	else {
+		std::cout << "time " << time << "ms: Time slice expired; process " << proc.getPID()
+			<< " preempted with ";
+		if (proc.wasPreempted()) std::cout << proc.endRemainingTime() - time;
+		else std::cout << proc.endBurstTime() - time;
 
-	std::cout << "time " << time << "ms: Time slice expired; process " << proc.getPID()
-		<< " preempted with ";
+		std::cout << "ms to go " << queue_contents(ready_queue)
+			<< "\n";
 
-    if (proc.wasPreempted()) std::cout << proc.endRemainingTime() - time;
-    else std::cout << proc.endBurstTime() - time;
+		stats->num_context_switches++;
+		stats->num_preemptions++;
 
-    std::cout << "ms to go " << queue_contents(ready_queue)
-		<< "\n";
+		proc.preempt(time);
 
+		// time when the CPU will next be available (after context switch)
+		*CPU_available = time + T_CS;
+		proc.setAsREADY(time);
 
-    stats->num_context_switches++;
-	stats->num_preemptions++;
-
-	proc.preempt(time);
-
-	// time when the CPU will next be available (after context switch)
-	*CPU_available = time + T_CS;
-	proc.setAsREADY(*CPU_available);
-
-	if (strcmp(rr_add, "BEGINNING") == 0)
-		ready_queue.push_front(proc);
-	else
-		ready_queue.push_back(proc);
+		if (strcmp(rr_add, "BEGINNING") == 0)
+			ready_queue.push_front(proc);
+		else
+			ready_queue.push_back(proc);
+	}
 }
 
 // PROCESS BLOCK =================================================================================
@@ -182,6 +188,7 @@ void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO
 /* Handles process finishing IO block for Round Robin                                           */
 void process_finished_IO_RR(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, int time, char* rr_add) {
 	IO_blocked.front().setAsREADY(time);
+	IO_blocked.front().setWholeBurstReadyTime(time);
 	if (strcmp(rr_add, "BEGINNING") == 0)
 		ready_queue.push_front(IO_blocked.front());
 	else
@@ -190,7 +197,6 @@ void process_finished_IO_RR(std::list<Process> &ready_queue, std::list<Process> 
 	std::cout << "time " << time << "ms: Process " << IO_blocked.front().getPID()
 		<< " completed I/O; added to ready queue " << queue_contents(ready_queue)
 		<< "\n";
-
 	IO_blocked.pop_front();
 }
 

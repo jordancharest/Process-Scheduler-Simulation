@@ -75,6 +75,14 @@ public:
             preempted = true;
         }
     }
+	void setRemaining_time(int time) {// added in case of future extension
+		if (preempted)
+			remaining_time = start_time + remaining_time - time;
+		else {
+			remaining_time = start_time + burst_length - time;
+			preempted = true;
+		}
+	}
 
 private:
     char pid;
