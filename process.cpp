@@ -135,10 +135,10 @@ void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_
 		*CPU_available = time + T_CS;
 		proc.setAsREADY(time);
 
-		if (strcmp(rr_add, "BEGINNING") == 0)
+		/*if (strcmp(rr_add, "BEGINNING") == 0)
 			ready_queue.push_front(proc);
-		else
-			ready_queue.push_back(proc);
+		else*/
+		ready_queue.push_back(proc);
 	}
 }
 
