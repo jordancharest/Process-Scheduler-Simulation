@@ -5,8 +5,8 @@
 #include <list>
 
 // GLOBAL VARIABLES ==============================================================================
-#define T_CS 6  // time needed for a context switch
-#define T_SLICE 94  // time slice for round robin
+#define T_CS 8  // time needed for a context switch
+#define T_SLICE 80  // time slice for round robin
 extern int total_processes;
 
 enum class Status {
@@ -83,6 +83,7 @@ public:
 			preempted = true;
 		}
 	}
+
 
 private:
     char pid;

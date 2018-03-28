@@ -94,7 +94,7 @@ int main(int argc, char* argv[]){
 
     std::ifstream InputStream(argv[1]);
     if (!InputStream.good()){
-        std::cerr << "Can't open " << argv[1] << " to read.\n";
+        std::cerr << "ERROR: Invalid input file format";
         return EXIT_FAILURE;
     }
 

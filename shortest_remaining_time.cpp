@@ -35,7 +35,6 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
     process_start(ready_queue, running, time+T_CS/2);   // allow time for the half context switch on the first process
 
 
-
     bool preemption = false;
     Process preempting_process;
     int CPU_available = 0;
@@ -50,7 +49,7 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
         if (preemption) {
             if (context_counter == 0) {
                 running.preempt(time-1);    // preemption actually occurred last ms
-                running.setAsREADY(time-1);
+                running.setAsREADY(time-1+ T_CS/2);
                 ready_queue.push_back(running);
                 ready_queue.sort(SRT_sort);
                 stats.num_context_switches++;
@@ -113,13 +112,17 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
 
         // check if any processes are arriving
         if (next < total_processes  &&  processes[next].getArrivalTime() == time) {
-            if ((processes[next].getBurstLength() < (running.endBurstTime() - time))
-                || (processes[next].getBurstLength() < (running.endRemainingTime() - time)) ) {
+
+            // if the arriving process has a shorter remaining time than the running process as preemption may occur
+            if (((processes[next].getBurstLength() < (running.endBurstTime() - time))
+                ||  (processes[next].getBurstLength() < (running.endRemainingTime() - time)))
+                &&  (running.getStatus() == Status::RUNNING)) {
 
                 preemption = true;
                 preempting_process = processes[next];
                 preempt_on_arrival(ready_queue, preempting_process, running, time);
 
+            // else just add it to the ready queue
             } else {
                 process_arrival(ready_queue, processes[next], time);
                 ready_queue.sort(SRT_sort);
@@ -138,8 +141,7 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
         total_bursts += proc.getTotalBursts();
     }
     stats.avg_burst_time /= total_bursts;
-    stats.avg_turnaround_time /= total_bursts;
-    stats.avg_turnaround_time += T_CS/2;
+    stats.avg_turnaround_time = stats.avg_turnaround_time/total_bursts + T_CS/2;
     stats.avg_wait_time /= total_bursts;
 
     time += (T_CS/2 - 1);   // allow time for context switch

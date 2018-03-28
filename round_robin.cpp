@@ -31,7 +31,6 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 
 	int context_counter = 0;
 	int CPU_available = 0;
-	int total_burst_time = 0;
 	std::list<Process> IO_blocked;
 
 	while (next < total_processes || ready_queue.size() > 0 || IO_blocked.size() > 0 || running.getStatus() == Status::RUNNING) {
@@ -53,23 +52,19 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 
 			if (running.wasPreempted()) {
 				if (running.endRemainingTime() == time) {
-					total_burst_time += (time - running.getStartTime());
 					calculate_turnaround(&stats, running, time);
 					process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
 				}
 				else if ((time - running.getStartTime()) >= T_SLICE) {
-					total_burst_time += (time - running.getStartTime());
 					process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
 				}
 			}
 			else {
 				if (running.endBurstTime() == time) {
-					total_burst_time += (time - running.getStartTime());
 					calculate_turnaround(&stats, running, time);
 					process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
 				}
 				else if ((time - running.getStartTime()) >= T_SLICE) {
-					total_burst_time += (time - running.getStartTime());
 					process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
 				}
 			}
@@ -99,8 +94,7 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 		total_bursts += proc.getTotalBursts();
 	}
 	stats.avg_burst_time /= total_bursts;
-	stats.avg_turnaround_time /= total_bursts;
-	stats.avg_turnaround_time += T_CS / 2;
+	stats.avg_turnaround_time = stats.avg_turnaround_time/total_bursts + T_CS/2;
 	stats.avg_wait_time /= total_bursts;
 
 	time += (T_CS / 2 - 1);   // allow time for context switch

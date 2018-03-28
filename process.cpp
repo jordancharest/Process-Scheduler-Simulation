@@ -95,7 +95,7 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
 
     proc.decrementNumBursts();
 
-    // time when the CPU will next be available (after context switch)
+    // calculate time when the CPU will next be available (after context switch)
     if (proc.wasPreempted())
         *CPU_available = proc.endRemainingTime() + T_CS;
     else
@@ -104,6 +104,8 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
     // Process termination
     if (proc.getNumBursts() == 0)
         process_termination(ready_queue, proc, time);
+
+    // or IO burst
     else
         process_block(ready_queue, IO_blocked, proc, time);
 }
@@ -113,9 +115,8 @@ void process_finished_burst(std::list<Process> &ready_queue, std::list<Process> 
 void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_available, stat_t* stats, int time, char* rr_add) {
 	if (ready_queue.size() == 0) {
 		std::cout << "time " << time << "ms: Time slice expired; no preemption because ready queue is empty [Q <empty>]\n";
-		//*CPU_available = time + T_SLICE;
 		proc.setRemaining_time(time);
-		proc.setAsRUNNING(time);		
+		proc.setAsRUNNING(time);
 	}
 	else {
 		std::cout << "time " << time << "ms: Time slice expired; process " << proc.getPID()
@@ -133,7 +134,7 @@ void process_preempted(std::list<Process> &ready_queue, Process &proc, int* CPU_
 
 		// time when the CPU will next be available (after context switch)
 		*CPU_available = time + T_CS;
-		proc.setAsREADY(time);
+		proc.setAsREADY(time + T_CS/2);
 
 		/*if (strcmp(rr_add, "BEGINNING") == 0)
 			ready_queue.push_front(proc);
