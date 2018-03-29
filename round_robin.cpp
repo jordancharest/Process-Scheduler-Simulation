@@ -10,7 +10,7 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 
     stat_t stats;
     stats.algorithm = "RR";
-    std::list<Process> ready_queue;
+	std::list<Process> ready_queue;
     std::cout <<  "time 0ms: Simulator started for RR " << queue_contents(ready_queue) << "\n";
 
     // Build the initial ready queue, processes are ordered by arrival time
@@ -31,12 +31,45 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 
 	int context_counter = 0;
 	int CPU_available = 0;
+	bool preemption = false;
+	//Process preempting_process;
 	std::list<Process> IO_blocked;
 
 	while (next < total_processes || ready_queue.size() > 0 || IO_blocked.size() > 0 || running.getStatus() == Status::RUNNING) {
 
-		// check if a new process should be started
-		if (running.getStatus() != Status::RUNNING  &&  ready_queue.size() > 0) {
+		// preempt the currently running process
+		if (preemption) {
+			if (context_counter == 0) {
+				running.setAsREADY(time -1 + T_CS/2);
+			}else if (context_counter == T_CS / 2) {
+				
+				running.preempt(time -1 - T_CS / 2);    // preemption actually occurred last ms
+				running.setAsREADY(time - 1);
+				ready_queue.push_back(running);
+				stats.num_context_switches++;
+				stats.num_preemptions++;
+				running = ready_queue.front();
+				ready_queue.pop_front();
+			}
+
+			context_counter++;
+
+			// context switch is completed
+			if (context_counter >= T_CS) {
+				//running = ready_queue.front();
+				stats.avg_wait_time += (time - running.getReadyTime() - T_CS / 2);
+				running.setAsRUNNING(time);
+				std::cout << "time " << time << "ms: Process " << running.getPID() << " started using the CPU ";
+				if (running.wasPreempted())
+					std::cout << "with " << (running.endRemainingTime() - time) << "ms remaining ";
+
+				std::cout << queue_contents(ready_queue) << "\n";
+				context_counter = 0;
+				preemption = false;
+			}
+
+			// check if a new process should be started (don't check for this if a preemption is occurring)
+		}else if (running.getStatus() != Status::RUNNING  &&  ready_queue.size() > 0) {
 			context_counter++;
 
 			if (time >= CPU_available  && context_counter >= T_CS / 2) {
@@ -56,7 +89,27 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 					process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
 				}
 				else if ((time - running.getStartTime()) >= T_SLICE) {
-					process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
+					//preempting_process = running;
+					if (ready_queue.size() == 0) {
+						preemption = false;
+						std::cout << "time " << time << "ms: Time slice expired; no preemption because ready queue is empty [Q <empty>]\n";
+						running.setRemaining_time(time);
+						running.setAsRUNNING(time);
+					}
+					else {
+						preemption = true;
+						std::cout << "time " << time << "ms: Time slice expired; process " << running.getPID()
+							<< " preempted with ";
+						if (running.wasPreempted()) std::cout << running.endRemainingTime() - time;
+						else std::cout << running.endBurstTime() - time;
+
+						std::cout << "ms to go " << queue_contents(ready_queue)
+							<< "\n";
+
+						// time when the CPU will next be available (after context switch)
+						CPU_available = time + T_CS;
+					}
+					//process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
 				}
 			}
 			else {
@@ -65,7 +118,27 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 					process_finished_burst(ready_queue, IO_blocked, running, &CPU_available, &stats, time);
 				}
 				else if ((time - running.getStartTime()) >= T_SLICE) {
-					process_preempted(ready_queue, running, &CPU_available, &stats, time, rr_add);
+					
+					//preempting_process = running;
+					if (ready_queue.size() == 0) {
+						preemption = false;
+						std::cout << "time " << time << "ms: Time slice expired; no preemption because ready queue is empty [Q <empty>]\n";
+						running.setRemaining_time(time);
+						running.setAsRUNNING(time);
+					}
+					else {
+						preemption = true;
+						std::cout << "time " << time << "ms: Time slice expired; process " << running.getPID()
+							<< " preempted with ";
+						if (running.wasPreempted()) std::cout << running.endRemainingTime() - time;
+						else std::cout << running.endBurstTime() - time;
+
+						std::cout << "ms to go " << queue_contents(ready_queue)
+							<< "\n";
+
+						// time when the CPU will next be available (after context switch)
+						CPU_available = time + T_CS;
+					}
 				}
 			}
 		}
@@ -95,6 +168,8 @@ stat_t Round_Robin(std::vector<Process> &processes, char* rr_add) {
 	}
 	stats.avg_burst_time /= total_bursts;
 	stats.avg_turnaround_time = stats.avg_turnaround_time/total_bursts + T_CS/2;
+	//stats.avg_turnaround_time /= total_bursts;
+	//stats.avg_turnaround_time += T_CS / 2;
 	stats.avg_wait_time /= total_bursts;
 
 	time += (T_CS / 2 - 1);   // allow time for context switch
