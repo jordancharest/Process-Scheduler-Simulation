@@ -124,8 +124,13 @@ stat_t Shortest_Remaining_Time(std::vector<Process> &processes) {
 
             // else just add it to the ready queue
             } else {
-                process_arrival(ready_queue, processes[next], time);
-                ready_queue.sort(SRT_sort);
+                //process_arrival(ready_queue, processes[next], time);
+				processes[next].setAsREADY(time);
+				processes[next].setWholeBurstReadyTime(time);
+				ready_queue.push_back(processes[next]);
+				ready_queue.sort(SRT_sort);
+				std::cout << "time " << time << "ms: Process " << processes[next].getPID()
+					<< " arrived and added to ready queue " << queue_contents(ready_queue) << "\n";
             }
 
             next++;
