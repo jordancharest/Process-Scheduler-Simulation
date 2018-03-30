@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstdio>
+#include <iterator>
 #include "process.hpp"
 
 int total_processes;
@@ -125,10 +126,18 @@ int main(int argc, char* argv[]){
     process_order(processes);
 #endif
 
-    // Run three different scheduling simulations
-    stat_t FCFS_stats = First_Come_First_Serve(processes);
-    stat_t SRT_stats = Shortest_Remaining_Time(processes);
-    stat_t RR_stats = Round_Robin(processes, rr_add);
+    //Duplicate processes to remove dependency, for better debugging
+	std::vector<Process> processes_fcfs;
+	std::vector<Process> processes_srt;
+	std::vector<Process> processes_rr;
+	copy(processes.begin(), processes.end(), back_inserter(processes_fcfs));
+	copy(processes.begin(), processes.end(), back_inserter(processes_srt));
+	copy(processes.begin(), processes.end(), back_inserter(processes_rr));
+
+	// Run three different scheduling simulations
+    stat_t FCFS_stats = First_Come_First_Serve(processes_fcfs);
+    stat_t SRT_stats = Shortest_Remaining_Time(processes_srt);
+    stat_t RR_stats = Round_Robin(processes_rr, rr_add);
 
     print_stats(FCFS_stats, OutputStream);
     print_stats(SRT_stats, OutputStream);

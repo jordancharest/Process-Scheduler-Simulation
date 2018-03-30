@@ -17,17 +17,25 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
     std::list<Process> ready_queue;
     std::cout <<  "time 0ms: Simulator started for FCFS " << queue_contents(ready_queue) << "\n";
 
-    // Build the initial ready queue, processes are ordered by arrival time
-    int time = processes[0].getArrivalTime();
-    int next = 0;
-
-    // check for all processes that will arrive before the first process can start running
-    for (int i = 0; i < (T_CS/2); i++) {
-        while (next < total_processes && processes[next].getArrivalTime() == time + i) {
-            process_arrival(ready_queue, processes[next], time+i);
-            next++;
-        }
-    }
+	// Build the initial ready queue, processes are ordered by arrival time
+	std::list<Process> buffered_arrival;
+	int buffered_ct = 0;
+	int time = processes[0].getArrivalTime();
+	int next = 0;
+	// check for all processes that will arrive before the first process can start running
+	for (int i = 0; i < (T_CS / 2); i++) {
+		while (next < total_processes && processes[next].getArrivalTime() == time + i) {
+			buffered_arrival.push_back(processes[next]);
+			next++;
+			buffered_ct++;
+		}
+		buffered_arrival.sort(AB_sort);
+		for (int j = 0; j < buffered_ct; j++) {
+			process_arrival(ready_queue, buffered_arrival.front(), time + i);
+			buffered_arrival.pop_front();
+		}
+		buffered_ct = 0;
+	}
 
     // start the first process
     Process running = ready_queue.front();
@@ -67,11 +75,18 @@ stat_t First_Come_First_Serve(std::vector<Process> &processes) {
             }
         }
 
-        // check if any processes are arriving
-        if (next < total_processes  &&  processes[next].getArrivalTime() == time) {
-            process_arrival(ready_queue, processes[next], time);
-            next++;
-        }
+		// check if any processes are arriving
+		while (next < total_processes && processes[next].getArrivalTime() == time) {
+			buffered_arrival.push_back(processes[next]);
+			next++;
+			buffered_ct++;
+		}
+		buffered_arrival.sort(AB_sort);
+		for (int j = 0; j < buffered_ct; j++) {
+			process_arrival(ready_queue, buffered_arrival.front(), time);
+			buffered_arrival.pop_front();
+		}
+		buffered_ct = 0;
 
         time++;
     }

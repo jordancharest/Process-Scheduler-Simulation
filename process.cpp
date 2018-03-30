@@ -16,6 +16,11 @@ bool RQ_sort(Process &a, Process &b) {
     return (a.getBurstLength() < b.getBurstLength());
 }
 
+// ALPHABETICAL SORT ==============================================================================
+bool AB_sort(Process &a, Process &b) {
+	return (a.getPID() < b.getPID());
+}
+
 // QUEUE CONTENTS ================================================================================
 /* Returns a string of the queue contents in the format:
     [Q <empty>]   or   [Q pid1 pid2 pid3 (etc.)]                                                */
@@ -59,7 +64,9 @@ void process_arrival(std::list<Process> &ready_queue, Process &proc, int time) {
 void preempt_on_arrival(std::list<Process> &ready_queue, Process &arriving, Process &running, int time) {
     std::cout << "time " << time << "ms: Process " << arriving.getPID()
               << " arrived and will preempt " << running.getPID() << " " << queue_contents(ready_queue) << "\n";
-    ready_queue.push_front(arriving);
+	arriving.setAsREADY(time);
+	arriving.setWholeBurstReadyTime(time);
+	ready_queue.push_front(arriving);	
 }
 
 // PROCESS ARRIVAL ===============================================================================

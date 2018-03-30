@@ -119,6 +119,6 @@ void process_finished_IO(std::list<Process> &ready_queue, std::list<Process> &IO
 void process_finished_IO_RR(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, int time, char* rr_add);
 void preempt_after_IO(std::list<Process> &ready_queue, std::list<Process> &IO_blocked, Process &preempting, Process &running, int time);
 void process_termination(std::list<Process> &ready_queue, Process &proc, int time);
-
+bool AB_sort(Process &a, Process &b);
 
 #endif // PROCESS_H_INCLUDED
