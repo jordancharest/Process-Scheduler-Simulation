@@ -1,24 +1,48 @@
-Jinda:
+# Process Scheduler Simulation
+The Process Scheduler Simulation simulates how an OS would schedule processes using three different scheduling algorithms:
+First Come First Serve, Shortest Remaining Time, and Round Robin.
 
-main.cpp
-- Simulator is controlled by main.cpp. I don't think any more changes need to be made to this file
-  - parses input file, then runs three separate routines (one for each algorithm)
-  - sends each routine a vector of all the processes, ordered by arrival time
-  
-process.h
-- enum class Status
-  - contains enums for each process state (READY, RUNNING, BLOCKED, TERMINATED)
-  
-- struct simulation_statistics (stat_t)
-  - struct containing all the statistics that need to be output at the end of simulation
-  - needs to be returned to main
-  
-- class Process
+## Compile and Run
+g++ -std=c++11 *.cpp
 
-- also defines T_CS (time for a context switch) and declares all shared functions
+./a.out input-file output-file
 
-process.cpp
-- implementation file for all shared functions
+### Input File
+The program expects a formatted input file with the following formatting rules:
+- lines that start with # are ignored
+- each process must be on its own line and take the form: proc-id|initial-arrival-time|cpu-burst-time|num-bursts|io-time , including the '|' delimiter
+- process IDs are single character
 
-"algorithm".cpp
-- control functions for all three simulation algorithms
+An example input file may look something like this:
+
+\# example simulator input file
+
+\# <--- commented line
+
+\# proc-id|initial-arrival-time|cpu-burst-time|num-bursts|io-time
+
+A|0|168|5|287
+
+B|0|385|1|0
+
+D|250|1770|2|822
+
+C|190|97|5|2499
+
+E|200|50|1|50
+
+### Output File
+The initially blank output file will be populated by timestamped notable events that happen during the simulation such as:
+- Process arrival
+- Process finishes a CPU burst
+- Process finishes I/O block
+- Process termination
+- etc.
+
+### Statistics
+Statistics for each algorithm are written to stdout. The simulation tracks the following statistics for each algorithm:
+- Average CPU burst time
+- Average wait time
+- Average turnaround time
+- Total number of context switches
+- Total number of preemptions
