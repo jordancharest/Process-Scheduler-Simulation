@@ -3,10 +3,10 @@ The Process Scheduler Simulation simulates how an OS would schedule processes us
 First Come First Serve, Shortest Remaining Time, and Round Robin.
 
 ## Compile and Run
-g++ -std=c++11 *.cpp
-
-./a.out input-file output-file
-
+```
+g++ -std=c++11 *.cpp -o main.exe
+./main.exe <input-file> <output-file>
+```
 ### Input File
 The program expects a formatted input file with the following formatting rules:
 - lines that start with # are ignored
@@ -14,23 +14,16 @@ The program expects a formatted input file with the following formatting rules:
 - process IDs are single character
 
 An example input file may look something like this:
-
-\# example simulator input file
-
-\# <--- commented line
-
-\# proc-id|initial-arrival-time|cpu-burst-time|num-bursts|io-time
-
+```
+# example simulator input file
+# <--- commented line
+# proc-id|initial-arrival-time|cpu-burst-time|num-bursts|io-time
 A|0|168|5|287
-
 B|0|385|1|0
-
 D|250|1770|2|822
-
 C|190|97|5|2499
-
 E|200|50|1|50
-
+```
 ### Output File
 The initially blank output file will be populated by timestamped notable events that happen during the simulation such as:
 - Process arrival
